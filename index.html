@@ -7,6 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF7A00">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448066.png">
+    
     <!-- Tailwind CSS Tema Kustom Warmindo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -37,7 +38,12 @@
         .anim-drive { animation: drive 4s linear infinite; }
     </style>
 </head>
-<body class="bg-w-cream h-screen overflow-hidden flex text-w-black">
+<body class="bg-w-cream h-screen overflow-hidden flex text-w-black relative">
+
+    <!-- ========================================== -->
+    <!-- WADAH TOAST NOTIFICATION ELEGANT -->
+    <!-- ========================================== -->
+    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- ========================================== -->
     <!-- LAYAR LOGIN (ANIMASI) -->
@@ -229,7 +235,9 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Invoice & Waktu</th><th class="p-4">Tipe & Pelanggan</th><th class="p-4">Cabang</th><th class="p-4">Total & Metode</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-pesanan-body" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="tabel-pesanan-body" class="divide-y divide-gray-100">
+                            <!-- JS Render Tabel Pesanan -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -249,7 +257,9 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Foto</th><th class="p-4">Nama Menu</th><th class="p-4">Kategori</th><th class="p-4">Modal</th><th class="p-4">Harga Jual</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-menu-body" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="tabel-menu-body" class="divide-y divide-gray-100">
+                            <!-- JS Render Tabel Menu -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -288,7 +298,9 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Nama Bahan</th><th class="p-4">Kategori</th><th class="p-4">Sisa Stok</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-stok-body" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="tabel-stok-body" class="divide-y divide-gray-100">
+                            <!-- JS Render Tabel Stok -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -327,7 +339,7 @@
             </div>
         </div>
 
-        <!-- ==================== AREA PENGATURAN ==================== -->
+        <!-- ==================== AREA PENGATURAN (CLOUD) ==================== -->
         <div id="view-pengaturan" class="view-panel flex-1 overflow-y-auto p-4 md:p-6 hidden w-full">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Pengaturan Sistem</h2>
@@ -623,6 +635,23 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- CUSTOM CONFIRM MODAL (ELEGAN) -->
+    <!-- ========================================== -->
+    <div id="modal-confirm" class="fixed inset-0 bg-black/60 z-[200] hidden flex justify-center items-center backdrop-blur-sm transition-all">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-transform text-center p-6" id="modal-content-confirm">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-bold text-xl text-gray-800 mb-2" id="confirm-title">Konfirmasi</h3>
+            <p class="text-sm text-gray-500 mb-8" id="confirm-message">Apakah Anda yakin?</p>
+            <div class="flex gap-2">
+                <button onclick="closeConfirm()" class="flex-1 py-3 rounded-xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition">Batal</button>
+                <button id="btn-confirm-ok" class="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Cart Float Button -->
     <button class="md:hidden fixed bottom-6 right-6 bg-w-orange text-white p-4 rounded-full shadow-2xl z-20 flex items-center gap-2" id="mobile-cart-btn" onclick="toggleCart()">
         <i class="fa-solid fa-cart-shopping"></i>
@@ -635,13 +664,61 @@
     <!-- ========================================================================================= -->
     <script>
         // =======================================================================================
+        // 0. TOAST & CONFIRM CUSTOM NOTIFICATION
+        // =======================================================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgColor = type === 'success' ? 'bg-w-green' : (type === 'error' ? 'bg-red-600' : 'bg-w-black');
+            let icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-xmark' : 'fa-info-circle');
+
+            toast.className = `flex items-center gap-3 ${bgColor} text-white px-5 py-3 rounded-xl shadow-2xl font-bold text-sm transform transition-all duration-300 -translate-y-10 opacity-0 min-w-[250px] justify-center`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Animasi masuk
+            setTimeout(() => { toast.classList.remove('-translate-y-10', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); }, 10);
+            
+            // Animasi keluar otomatis 3 detik
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        let confirmAction = null;
+        function showConfirm(title, message, actionCallback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            confirmAction = actionCallback;
+            const m = document.getElementById('modal-confirm');
+            const c = document.getElementById('modal-content-confirm');
+            m.classList.remove('hidden');
+            setTimeout(() => c.classList.replace('scale-95', 'scale-100'), 10);
+        }
+        function closeConfirm() {
+            const m = document.getElementById('modal-confirm');
+            const c = document.getElementById('modal-content-confirm');
+            c.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => m.classList.add('hidden'), 200);
+            confirmAction = null;
+        }
+        document.getElementById('btn-confirm-ok').addEventListener('click', () => {
+            if(confirmAction) confirmAction();
+            closeConfirm();
+        });
+
+
+        // =======================================================================================
         // 1. KONFIGURASI API GOOGLE SHEETS
         // =======================================================================================
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_OP9TiEpJ3U3o8XRFu34JRUc72eBF_AGyWKFmeHpM5kPpWD_wfx4w0U0wfgj8C-Yj/exec';
         
         async function kirimKeServer(action, payload) {
             if(API_URL === 'PASTE_URL_WEB_APP_GAS_ANDA_DISINI') {
-                console.log(`[SIMULASI LOKAL] Action: ${action}`, payload);
                 return { status: 'sukses', id_transaksi: 'TRX-SIMULASI-' + new Date().getTime() };
             }
             try {
@@ -653,16 +730,11 @@
         // =======================================================================================
         // 2. STATE & DATABASE LOKAL KOSONG (KECUALI OWNER)
         // =======================================================================================
-        let pengaturanSistem = { namaToko: 'WARMINDO [GANTI NAMA]', cabangAktif: '-', telp: '-', alamat: '-', laciOtomatis: true };
-        
+        let pengaturanSistem = { namaToko: 'WARMINDO', cabangAktif: '-', telp: '-', alamat: '-', laciOtomatis: true };
         let cabangDatabase = [];
-
-        let penggunaDatabase = [ 
-            { id: 'U00', nama: 'Owner / Superadmin', pin: '0000', jabatan: 'Owner', cabang: 'Semua Cabang', akses: ['dashboard', 'kasir', 'pesanan', 'daftar-menu', 'stok-bahan', 'laporan', 'pengaturan'], status: 'Aktif' }
-        ];
+        let penggunaDatabase = [ { id: 'U00', nama: 'Owner / Superadmin', pin: '0000', jabatan: 'Owner', cabang: 'Semua Cabang', akses: ['dashboard', 'kasir', 'pesanan', 'daftar-menu', 'stok-bahan', 'laporan', 'pengaturan'], status: 'Aktif' } ];
         
         let kasirAktif = null;
-
         let produkDatabase = [];
         let stokDatabase = [];
         let pesananDatabase = [];
@@ -706,9 +778,10 @@
                     loginScreen.classList.add('hidden');
                     for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
                 }, 500);
+                showToast(`Selamat datang, ${user.nama}!`, 'success');
 
             } else {
-                alert("PIN Salah! Silakan coba lagi.");
+                showToast("PIN Salah! Silakan coba lagi.", 'error');
                 for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
                 document.getElementById('pin-1').focus();
             }
@@ -742,9 +815,13 @@
                 terapkanHakAkses(user.akses);
                 document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
                 document.getElementById('kasir-aktif-nama').innerText = user.nama;
-                alert(`Berhasil ganti shift ke: ${user.nama}`);
+                
                 tutupQuickSwitch();
-            } else { alert("PIN Salah!"); document.getElementById('pin-switch').value = ''; }
+                showToast(`Shift dialihkan ke: ${user.nama}`, 'success');
+            } else { 
+                showToast("PIN Salah!", 'error'); 
+                document.getElementById('pin-switch').value = ''; 
+            }
         }
 
 
@@ -762,7 +839,7 @@
             renderTabelMenu();
             renderTabelStok();
 
-            document.getElementById('pin-1').focus(); // Fokus input PIN
+            document.getElementById('pin-1').focus();
         }
 
         // =======================================================================================
@@ -771,16 +848,16 @@
         let printDevice = null; let printServer = null;
 
         async function connectBluetooth() {
-            if (!navigator.bluetooth) return alert('Browser tidak mendukung Bluetooth API! Gunakan Chrome.');
+            if (!navigator.bluetooth) return showToast('Browser tidak mendukung Bluetooth API!', 'error');
             try {
                 printDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '0000fee7-0000-1000-8000-00805f9b34fb'] });
                 printDevice.addEventListener('gattserverdisconnected', onPrinterDisconnected);
                 printServer = await printDevice.gatt.connect();
                 updateBluetoothUI(true, printDevice.name);
-                alert(`✅ Berhasil menyandingkan printer: ${printDevice.name}`);
-            } catch(error) { if(error.message !== 'User cancelled the requestDevice() chooser.') alert('Gagal: ' + error.message); }
+                showToast(`Berhasil menyandingkan printer!`, 'success');
+            } catch(error) { if(error.message !== 'User cancelled the requestDevice() chooser.') showToast('Gagal: ' + error.message, 'error'); }
         }
-        function onPrinterDisconnected() { updateBluetoothUI(false); alert('⚠️ Printer terputus!'); }
+        function onPrinterDisconnected() { updateBluetoothUI(false); showToast('Koneksi printer terputus!', 'error'); }
         function updateBluetoothUI(isConnected, name = '') {
             const iconF = document.getElementById('bt-icon'); const textF = document.getElementById('bt-text');
             const iconS = document.getElementById('bt-icon-sidebar'); const textS = document.getElementById('bt-text-sidebar');
@@ -815,8 +892,6 @@
             let options = cabangDatabase.map(c => `<option value="${c.nama}">${c.nama}</option>`).join('');
             document.getElementById('set-cabang').innerHTML = options;
             document.getElementById('kasir-cabang').innerHTML = options;
-            
-            // Set value sesuai yang tersimpan di sistem
             document.getElementById('set-cabang').value = pengaturanSistem.cabangAktif;
         }
 
@@ -837,9 +912,19 @@
             let cbBaru = { id: 'C'+new Date().getTime(), nama: document.getElementById('cabang-nama').value, alamat: document.getElementById('cabang-alamat').value, status: 'Aktif' };
             cabangDatabase.push(cbBaru);
             tutupModalCabang(); renderTabelCabang(); renderDropdownCabang();
-            alert('Cabang berhasil ditambahkan!');
+            showToast('Cabang berhasil ditambahkan!', 'success');
+            await kirimKeServer('tambahCabang', cbBaru);
         }
-        function hapusCabang(id) { if(confirm('Hapus cabang ini permanen?')) { cabangDatabase = cabangDatabase.filter(x => x.id !== id); renderTabelCabang(); renderDropdownCabang(); } }
+
+        function hapusCabang(id) { 
+            showConfirm('Hapus Cabang', 'Apakah Anda yakin ingin menghapus cabang ini permanen?', async () => {
+                cabangDatabase = cabangDatabase.filter(x => x.id !== id); 
+                renderTabelCabang(); 
+                renderDropdownCabang(); 
+                showToast('Cabang berhasil dihapus.', 'success');
+                await kirimKeServer('hapusCabang', { id: id });
+            });
+        }
 
         async function simpanPengaturan() {
             pengaturanSistem.namaToko = document.getElementById('set-nama-toko').value;
@@ -851,7 +936,7 @@
             document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko;
             
             kirimKeServer('simpanPengaturan', { pengaturan: pengaturanSistem });
-            alert('Pengaturan Tersinkronisasi ke Cloud!');
+            showToast('Pengaturan Tersinkronisasi ke Cloud!', 'success');
         }
 
 
@@ -871,15 +956,24 @@
         
         async function simpanDataKasir() {
             let aksesDipilih = []; document.querySelectorAll('.cb-akses:checked').forEach(cb => aksesDipilih.push(cb.value));
-            if(aksesDipilih.length === 0) return alert('Pilih minimal 1 hak akses menu!');
+            if(aksesDipilih.length === 0) return showToast('Pilih minimal 1 hak akses menu!', 'error');
 
             let userBaru = { id: 'U'+new Date().getTime(), nama: document.getElementById('kasir-nama').value, pin: document.getElementById('kasir-pin').value, jabatan: document.getElementById('kasir-jabatan').value, cabang: document.getElementById('kasir-cabang').value, akses: aksesDipilih, status: 'Aktif' };
             penggunaDatabase.push(userBaru);
-            tutupModalKasir(); renderTabelKasir(); alert('Karyawan & Hak Akses berhasil disimpan!');
+            tutupModalKasir(); 
+            renderTabelKasir(); 
+            showToast('Karyawan & Hak Akses berhasil disimpan!', 'success');
             await kirimKeServer('tambahPengguna', userBaru);
         }
 
-        async function hapusKasir(id) { if(confirm('Hapus hak akses karyawan ini?')) { penggunaDatabase = penggunaDatabase.filter(x => x.id !== id); renderTabelKasir(); await kirimKeServer('hapusPengguna', { id: id }); } }
+        function hapusKasir(id) { 
+            showConfirm('Hapus Akses Karyawan', 'Anda yakin ingin mencabut akses pengguna ini?', async () => {
+                penggunaDatabase = penggunaDatabase.filter(x => x.id !== id); 
+                renderTabelKasir(); 
+                showToast('Akses Karyawan Dicabut!', 'success');
+                await kirimKeServer('hapusPengguna', { id: id });
+            });
+        }
 
 
         // =======================================================================================
@@ -917,7 +1011,7 @@
         // MODAL PEMBAYARAN (CHECKOUT) & API TRANSAKSI
         // =======================================================================================
         function bukaModalPembayaran() { 
-            if(keranjang.length === 0) return alert('Keranjang Kosong!'); 
+            if(keranjang.length === 0) return showToast('Keranjang Kosong!', 'error'); 
             metodeBayarPilihan = 'Tunai'; document.getElementById('pay-diskon').value = 0; document.getElementById('pay-diterima').value = totalSubtotal; 
             setMetodeBayarModal('Tunai', document.querySelector('.btn-metode-bayar')); 
             kalkulasiPembayaran(); 
@@ -941,7 +1035,7 @@
         }
         
         async function prosesPembayaranFinal() {
-            if(metodeBayarPilihan === 'Tunai' && (parseInt(document.getElementById('pay-diterima').value)||0) < totalAkhirBayar) return alert('Uang Tunai Kurang!');
+            if(metodeBayarPilihan === 'Tunai' && (parseInt(document.getElementById('pay-diterima').value)||0) < totalAkhirBayar) return showToast('Uang Tunai Kurang!', 'error');
 
             let namaMeja = document.getElementById('input-nama-meja').value || 'Customer'; let tipeLayanan = document.getElementById('input-tipe-layanan').value; let diskon = parseInt(document.getElementById('pay-diskon').value) || 0; 
             let now = new Date(); let tglISO = now.toISOString().split('T')[0]; let jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -952,10 +1046,7 @@
 
             kirimKeServer('transaksi', { namaPelanggan: namaMeja, tipeLayanan: tipeLayanan, subtotal: totalSubtotal, diskon: diskon, pajak: 0, totalAkhir: totalAkhirBayar, metodeBayar: metodeBayarPilihan, statusPesanan: 'Selesai', keranjang: keranjang, kasir: kasirAktif, cabang: pengaturanSistem.cabangAktif });
 
-            let pesanBluetooth = printDevice ? `🖨️ Mengirim data cetak ke: ${printDevice.name}` : `⚠️ Printer Bluetooth belum terhubung!`;
-            let pesanLaci = pengaturanSistem.laciOtomatis ? "\n💵 Sinyal Buka Laci Kasir: Terkirim..." : "";
-            
-            alert(`✅ Pembayaran Berhasil!\nKasir: ${kasirAktif}\nCabang: ${pengaturanSistem.cabangAktif}\n\n${pesanBluetooth}${pesanLaci}`);
+            showToast("Pembayaran Berhasil! Mencetak Struk...", "success");
             
             tutupModalPembayaran(); document.getElementById('input-nama-meja').value = ''; keranjang = []; updateKeranjang(); if(document.getElementById('filter-tanggal-pesanan').value === tglISO) renderTabelPesanan();
         }
@@ -975,7 +1066,7 @@
                         <td class="p-4"><div class="font-semibold text-gray-800">${p.pelanggan}</div><span class="text-xs ${p.tipe==='Dine In'?'text-blue-600':'text-purple-600'} font-bold">${p.tipe}</span></td>
                         <td class="p-4"><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded">${p.cabang}</span></td>
                         <td class="p-4 font-bold text-w-orange">Rp ${p.total.toLocaleString()} <br><span class="text-xs text-gray-400 font-normal">via ${p.bayar}</span></td>
-                        <td class="p-4 text-center"><button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex mx-auto gap-1 items-center transition" onclick="alert('Mencetak ulang struk...')"><i class="fa-solid fa-print"></i> Cetak</button></td>
+                        <td class="p-4 text-center"><button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex mx-auto gap-1 items-center transition" onclick="showToast('Mencetak ulang struk...', 'info')"><i class="fa-solid fa-print"></i> Cetak</button></td>
                     </tr>`; 
             }); 
         }
@@ -990,7 +1081,16 @@
                 tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b transition"><td class="p-4"><img src="${p.gambar}" class="w-12 h-12 rounded object-cover shadow-sm border border-gray-200"></td><td class="p-4 font-medium text-gray-800">${p.nama}</td><td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-semibold text-gray-600">${p.kategori}</span></td><td class="p-4 text-gray-500 font-semibold">Rp ${p.modal.toLocaleString()}</td><td class="p-4 text-w-orange font-bold">Rp ${p.harga.toLocaleString()}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${badge}">${p.status}</span></td><td class="p-4 flex justify-center gap-2 mt-2"><button onclick="bukaModalMenu('edit', '${p.id}')" class="text-blue-500 bg-blue-50 hover:bg-blue-100 w-8 h-8 rounded-lg transition"><i class="fa-solid fa-pen"></i></button><button onclick="hapusMenu('${p.id}')" class="text-red-500 bg-red-50 hover:bg-red-100 w-8 h-8 rounded-lg transition"><i class="fa-solid fa-trash"></i></button></td></tr>`; 
             });
         }
-        async function hapusMenu(id) { if(confirm(`Hapus menu permanen?`)) { produkDatabase = produkDatabase.filter(x => x.id !== id); renderTabelMenu(); renderProdukKasir(); await kirimKeServer('hapusProduk', { id: id }); } }
+        
+        function hapusMenu(id) { 
+            showConfirm('Hapus Menu', 'Apakah Anda yakin ingin menghapus menu ini permanen?', async () => {
+                produkDatabase = produkDatabase.filter(x => x.id !== id); 
+                renderTabelMenu(); renderProdukKasir(); 
+                showToast("Menu berhasil dihapus.", "success");
+                await kirimKeServer('hapusProduk', { id: id }); 
+            });
+        }
+        
         function bukaModalMenu(t, id = '') {
             const m = document.getElementById('modal-menu'); const c = document.getElementById('modal-content'); document.getElementById('form-file-gambar').value = ''; document.getElementById('form-gambar-base64').value = '';
             if(t === 'edit') { const p = produkDatabase.find(x => x.id === id); document.getElementById('modal-title').innerText = 'Edit Menu'; document.getElementById('form-id').value = p.id; document.getElementById('form-nama').value = p.nama; document.getElementById('form-kategori').value = p.kategori; document.getElementById('form-modal').value = p.modal; document.getElementById('form-harga').value = p.harga; document.getElementById('form-status').value = p.status; document.getElementById('preview-gambar').src = p.gambar; document.getElementById('form-gambar-lama').value = p.gambar; } 
@@ -1009,6 +1109,7 @@
             const dataMenu = { id: id || 'P' + new Date().getTime(), nama: document.getElementById('form-nama').value, kategori: document.getElementById('form-kategori').value, modal: parseInt(document.getElementById('form-modal').value)||0, harga: parseInt(document.getElementById('form-harga').value)||0, status: document.getElementById('form-status').value, gambar: imgFix, gambarBase64: imgBase64, gambarLama: imgLama }; 
             if(id) { const i = produkDatabase.findIndex(x => x.id === id); produkDatabase[i] = dataMenu; kirimKeServer('editProduk', dataMenu); } else { produkDatabase.push(dataMenu); kirimKeServer('tambahProduk', dataMenu); } 
             tutupModalMenu(); renderTabelMenu(); renderProdukKasir(); 
+            showToast("Menu berhasil disimpan!", "success");
         }
 
         // =======================================================================================
@@ -1036,28 +1137,35 @@
             const id = document.getElementById('stok-id').value; const dataStok = { id: id || 'S' + new Date().getTime(), nama: document.getElementById('stok-nama').value, kategori: document.getElementById('stok-kategori').value, stok: parseInt(document.getElementById('stok-jumlah').value)||0, satuan: document.getElementById('stok-satuan').value, batas: parseInt(document.getElementById('stok-batas').value)||5 };
             if(id) { const i = stokDatabase.findIndex(x => x.id === id); stokDatabase[i] = dataStok; kirimKeServer('editStok', dataStok); } else { stokDatabase.push(dataStok); kirimKeServer('tambahStok', dataStok); }
             tutupModalStok(); renderTabelStok();
+            showToast("Bahan baku berhasil disimpan!", "success");
         }
-        async function hapusStok(id) { if(confirm("Yakin hapus bahan ini?")) { stokDatabase = stokDatabase.filter(x => x.id !== id); renderTabelStok(); kirimKeServer('hapusStok', { id: id }); } }
+        
+        function hapusStok(id) { 
+            showConfirm('Hapus Bahan', 'Bahan baku ini akan dihapus permanen dari sistem.', async () => {
+                stokDatabase = stokDatabase.filter(x => x.id !== id); 
+                renderTabelStok(); 
+                showToast("Bahan berhasil dihapus.", "success");
+                kirimKeServer('hapusStok', { id: id }); 
+            });
+        }
 
         // === EXPORT EXCEL & CHART ===
         function exportToExcel() {
             let csv = "ID Transaksi,Waktu,Pelanggan,Kategori,Nama Menu,Qty,Modal,Harga Jual,Subtotal,Bayar,Laba Kotor\n";
-            if(mockupTransaksi.length === 0) return alert("Belum ada transaksi untuk diekspor!");
+            if(mockupTransaksi.length === 0) return showToast("Belum ada transaksi untuk diekspor!", "info");
             mockupTransaksi.forEach(t => { let laba = (t.harga - t.modal) * t.qty; csv += `${t.id},${t.waktu},${t.pelanggan},${t.kategori},${t.menu},${t.qty},${t.modal},${t.harga},${t.subtotal},${t.bayar},${laba}\n`; });
             const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv)); link.setAttribute("download", `Laporan_Warmindo_${hariIniISO}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
         let salesChartInstance = null; function renderChart() { const ctx = document.getElementById('salesChart').getContext('2d'); if(salesChartInstance) salesChartInstance.destroy(); salesChartInstance = new Chart(ctx, { type: 'line', data: { labels: ['10:00', '12:00', '14:00', '16:00', '18:00', '20:00'], datasets: [{ label: 'Penjualan (Rp)', data: [0, 0, 0, 0, 0, 0], borderColor: '#FF7A00', backgroundColor: 'rgba(255, 122, 0, 0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
         
         window.onload = initApp;
-// REGISTRASI SERVICE WORKER (PWA)
+
+        // REGISTRASI SERVICE WORKER (PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                .then((registration) => {
-                    console.log('Service Worker berhasil didaftarkan dengan scope: ', registration.scope);
-                }, (err) => {
-                    console.log('Service Worker gagal didaftarkan: ', err);
-                });
+                .then((registration) => { console.log('Service Worker terdaftar: ', registration.scope); }, 
+                      (err) => { console.log('Service Worker gagal: ', err); });
             });
         }
     </script>
