@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS WARMINDO - FULL CLOUD</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF7A00">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448066.png">
     <!-- Tailwind CSS Tema Kustom Warmindo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -1046,6 +1049,17 @@
         let salesChartInstance = null; function renderChart() { const ctx = document.getElementById('salesChart').getContext('2d'); if(salesChartInstance) salesChartInstance.destroy(); salesChartInstance = new Chart(ctx, { type: 'line', data: { labels: ['10:00', '12:00', '14:00', '16:00', '18:00', '20:00'], datasets: [{ label: 'Penjualan (Rp)', data: [0, 0, 0, 0, 0, 0], borderColor: '#FF7A00', backgroundColor: 'rgba(255, 122, 0, 0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
         
         window.onload = initApp;
+// REGISTRASI SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then((registration) => {
+                    console.log('Service Worker berhasil didaftarkan dengan scope: ', registration.scope);
+                }, (err) => {
+                    console.log('Service Worker gagal didaftarkan: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
