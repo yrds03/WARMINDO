@@ -99,7 +99,6 @@
         </div>
     </div>
 
-
     <!-- ========================================== -->
     <!-- GLOBAL BLUETOOTH INDICATOR -->
     <!-- ========================================== -->
@@ -123,14 +122,19 @@
             </button>
         </div>
 
-        <div class="flex flex-col w-full gap-2 mt-2">
+        <div class="flex flex-col w-full gap-2 mt-2 flex-1">
             <button onclick="switchMenu('dashboard')" id="nav-dashboard" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-chart-line text-lg group-hover:scale-110"></i> <span class="hidden lg:block">Dashboard</span></button>
             <button onclick="switchMenu('kasir')" id="nav-kasir" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-cash-register text-lg"></i> <span class="hidden lg:block">Kasir</span></button>
             <button onclick="switchMenu('pesanan')" id="nav-pesanan" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-receipt text-lg group-hover:scale-110"></i> <span class="hidden lg:block">Pesanan</span></button>
             <button onclick="switchMenu('daftar-menu')" id="nav-daftar-menu" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-book-open text-lg group-hover:scale-110"></i> <span class="hidden lg:block">Daftar Menu</span></button>
             <button onclick="switchMenu('stok-bahan')" id="nav-stok-bahan" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-boxes-stacked text-lg group-hover:scale-110"></i> <span class="hidden lg:block">Stok Bahan</span></button>
             <button onclick="switchMenu('laporan')" id="nav-laporan" class="nav-btn hidden w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group"><i class="fa-solid fa-file-excel text-lg group-hover:scale-110"></i> <span class="hidden lg:block">Laporan</span></button>
-            <button onclick="switchMenu('pengaturan')" id="nav-pengaturan" class="mt-auto hidden nav-btn w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group border-t border-white/20"><i class="fa-solid fa-gear text-lg group-hover:rotate-90 transition-transform"></i> <span class="hidden lg:block">Pengaturan</span></button>
+            
+            <!-- Wrapper Bawah untuk Pengaturan & Logout -->
+            <div class="mt-auto w-full flex flex-col">
+                <button onclick="switchMenu('pengaturan')" id="nav-pengaturan" class="hidden nav-btn w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-white/10 transition justify-center lg:justify-start group border-t border-white/20"><i class="fa-solid fa-gear text-lg group-hover:rotate-90 transition-transform"></i> <span class="hidden lg:block">Pengaturan</span></button>
+                <button onclick="prosesLogout()" id="nav-logout" class="w-full flex items-center gap-4 px-0 lg:px-6 py-3 hover:bg-red-800 transition justify-center lg:justify-start group border-t border-white/20 text-red-100 hover:text-white"><i class="fa-solid fa-power-off text-lg group-hover:-translate-x-1 transition-transform"></i> <span class="hidden lg:block">Keluar</span></button>
+            </div>
         </div>
     </nav>
 
@@ -182,9 +186,7 @@
                     </div>
                 </header>
                 <section class="flex-1 overflow-y-auto p-4 pb-24 md:pb-4">
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="produk-grid">
-                        <!-- Produk di-render JS -->
-                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="produk-grid"></div>
                 </section>
             </main>
 
@@ -194,9 +196,7 @@
                     <h3 class="font-bold text-lg"><i class="fa-solid fa-cart-shopping mr-2 text-w-orange"></i> Pesanan</h3>
                     <button class="md:hidden text-gray-500 hover:text-w-orange" onclick="toggleCart()"><i class="fa-solid fa-xmark text-2xl"></i></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-w-cream/50" id="keranjang-list">
-                    <!-- Item Keranjang JS -->
-                </div>
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-w-cream/50" id="keranjang-list"></div>
                 <div class="p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                     <div class="flex gap-2 mb-3">
                         <input type="text" id="input-nama-meja" placeholder="Nama / No. Meja" class="flex-1 border border-orange-200 rounded-lg px-3 py-2 text-sm bg-w-cream focus:outline-w-orange font-bold text-w-black">
@@ -235,9 +235,7 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Invoice & Waktu</th><th class="p-4">Tipe & Pelanggan</th><th class="p-4">Cabang</th><th class="p-4">Total & Metode</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-pesanan-body" class="divide-y divide-gray-100">
-                            <!-- JS Render Tabel Pesanan -->
-                        </tbody>
+                        <tbody id="tabel-pesanan-body" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -257,9 +255,7 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Foto</th><th class="p-4">Nama Menu</th><th class="p-4">Kategori</th><th class="p-4">Modal</th><th class="p-4">Harga Jual</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-menu-body" class="divide-y divide-gray-100">
-                            <!-- JS Render Tabel Menu -->
-                        </tbody>
+                        <tbody id="tabel-menu-body" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -298,9 +294,7 @@
                         <thead class="bg-gray-50 border-b text-sm text-gray-500">
                             <tr><th class="p-4">Nama Bahan</th><th class="p-4">Kategori</th><th class="p-4">Sisa Stok</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr>
                         </thead>
-                        <tbody id="tabel-stok-body" class="divide-y divide-gray-100">
-                            <!-- JS Render Tabel Stok -->
-                        </tbody>
+                        <tbody id="tabel-stok-body" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -788,7 +782,9 @@
         }
 
         function terapkanHakAkses(aksesArray) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.id !== 'nav-logout') btn.classList.add('hidden');
+            });
             let menuPertama = null;
             aksesArray.forEach(menuId => {
                 let btnNav = document.getElementById('nav-' + menuId);
@@ -822,6 +818,36 @@
                 showToast("PIN Salah!", 'error'); 
                 document.getElementById('pin-switch').value = ''; 
             }
+        }
+
+        // LOGOUT KESELURUHAN (KEMBALI KE LAYAR AWAL)
+        function prosesLogout() {
+            showConfirm('Keluar Sistem', 'Apakah Anda yakin ingin mengakhiri sesi dan keluar?', () => {
+                kasirAktif = null;
+                pengaturanSistem.cabangAktif = '-';
+                
+                document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> -`;
+                document.getElementById('kasir-aktif-nama').innerText = '-';
+                
+                // Sembunyikan semua menu kecuali logout
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if(btn.id !== 'nav-logout') btn.classList.add('hidden');
+                });
+                
+                // Tampilkan kembali layar Login
+                const loginScreen = document.getElementById('view-login');
+                loginScreen.classList.remove('hidden');
+                
+                // Animasi fade in
+                setTimeout(() => {
+                    loginScreen.classList.remove('opacity-0');
+                }, 50);
+                
+                for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
+                setTimeout(() => document.getElementById('pin-1').focus(), 500);
+                
+                showToast('Berhasil keluar dari sistem.', 'info');
+            });
         }
 
 
