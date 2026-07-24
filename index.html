@@ -56,6 +56,27 @@
 <body class="bg-w-cream h-screen overflow-hidden flex text-w-black relative">
 
     <!-- ========================================== -->
+    <!-- SPLASH SCREEN (LOADING AWAL CLOUD) -->
+    <!-- ========================================== -->
+    <div id="splash-screen" class="fixed inset-0 bg-w-orange z-[99999] flex flex-col items-center justify-center text-white transition-opacity duration-500">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/food.png')] opacity-10"></div>
+        <div class="relative z-10 flex flex-col items-center">
+            <div class="flex gap-2 mb-2 h-10 items-end">
+                <div class="w-1.5 h-6 bg-white/60 rounded-full anim-steam-1"></div>
+                <div class="w-1.5 h-8 bg-white/60 rounded-full anim-steam-2"></div>
+                <div class="w-1.5 h-6 bg-white/60 rounded-full anim-steam-3"></div>
+            </div>
+            <i class="fa-solid fa-bowl-food text-7xl text-white anim-float drop-shadow-lg mb-6"></i>
+            <h1 class="text-3xl font-black tracking-widest mb-8">WARMINDO</h1>
+            
+            <div class="flex items-center gap-3 bg-black/20 px-6 py-3 rounded-full">
+                <i class="fa-solid fa-cloud-arrow-down animate-bounce"></i>
+                <span class="text-sm font-bold tracking-wider">SINKRONISASI CLOUD...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- WADAH TOAST NOTIFICATION ELEGANT -->
     <!-- ========================================== -->
     <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
@@ -108,8 +129,8 @@
                     </button>
                     
                     <p class="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-    <i class="fa-solid fa-shield-halved"></i> Dilindungi oleh Enkripsi PIN
-</p>
+                        <i class="fa-solid fa-shield-halved"></i> Dilindungi oleh Enkripsi PIN
+                    </p>
                 </div>
             </div>
         </div>
@@ -873,7 +894,10 @@
         }
 
         function prosesLogin() {
-            let pinInput = document.getElementById('pin-1').value + document.getElementById('pin-2').value + document.getElementById('pin-3').value + document.getElementById('pin-4').value;
+            let pinInput = document.getElementById('pin-1').value + 
+                           document.getElementById('pin-2').value + 
+                           document.getElementById('pin-3').value + 
+                           document.getElementById('pin-4').value;
             
             let user = penggunaDatabase.find(u => u.pin === pinInput);
             if(user) {
@@ -882,6 +906,7 @@
                 
                 kasirAktif = user.nama;
                 pengaturanSistem.cabangAktif = user.cabang;
+                
                 terapkanHakAkses(user.akses);
 
                 document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
@@ -889,11 +914,14 @@
                 
                 const loginScreen = document.getElementById('view-login');
                 loginScreen.classList.add('opacity-0');
+                
                 setTimeout(() => {
                     loginScreen.classList.add('hidden');
                     for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
                 }, 500);
+                
                 showToast(`Selamat datang, ${user.nama}!`, 'success');
+
             } else {
                 showToast("PIN Salah! Silakan coba lagi.", 'error');
                 for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
@@ -935,6 +963,7 @@
         function prosesQuickSwitch() {
             let pinInput = document.getElementById('pin-switch').value;
             let user = penggunaDatabase.find(u => u.pin === pinInput);
+            
             if(user) {
                 // SIMPAN SESI BARU
                 localStorage.setItem('warmindo_user_pin', pinInput);
@@ -972,9 +1001,15 @@
                 
                 const loginScreen = document.getElementById('view-login'); 
                 loginScreen.classList.remove('hidden');
-                setTimeout(() => { loginScreen.classList.remove('opacity-0'); }, 50);
                 
-                for(let i=1; i<=4; i++) { document.getElementById('pin-'+i).value = ''; }
+                setTimeout(() => { 
+                    loginScreen.classList.remove('opacity-0'); 
+                }, 50);
+                
+                for(let i=1; i<=4; i++) {
+                    document.getElementById('pin-'+i).value = ''; 
+                }
+                
                 setTimeout(() => document.getElementById('pin-1').focus(), 500);
                 showToast('Berhasil keluar dari sistem.', 'info');
             });
@@ -984,14 +1019,18 @@
         // TARIK DATA DARI CLOUD (GOOGLE SHEETS) SAAT APLIKASI DIBUKA
         // =======================================================================================
         async function tarikDataCloud() {
-            if(API_URL === 'PASTE_URL_WEB_APP_GAS_ANDA_DISINI') return;
+            if(API_URL === 'PASTE_URL_WEB_APP_GAS_ANDA_DISINI') {
+                setTimeout(() => document.getElementById('splash-screen').classList.add('opacity-0', 'pointer-events-none'), 500);
+                setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 1000);
+                return;
+            }
             
             try {
-                showToast("Menarik data dari Cloud...", "info");
                 let response = await fetch(API_URL);
                 let json = await response.json();
                 
                 if (json.status === 'sukses') {
+                    // 1. Timpa Pengaturan
                     if(json.data.pengaturan) {
                         pengaturanSistem.namaToko = json.data.pengaturan.namaToko || 'WARMINDO';
                         pengaturanSistem.cabangAktif = json.data.pengaturan.cabangAktif || '-';
@@ -999,11 +1038,14 @@
                         pengaturanSistem.alamat = json.data.pengaturan.alamat || '-';
                         pengaturanSistem.laciOtomatis = String(json.data.pengaturan.laciOtomatis).toUpperCase() === 'TRUE';
                     }
+                    
+                    // 2. Timpa Database Array
                     if(json.data.cabang) cabangDatabase = json.data.cabang;
                     if(json.data.produk) produkDatabase = json.data.produk;
                     if(json.data.stok) stokDatabase = json.data.stok;
                     if(json.data.pesanan) pesananDatabase = json.data.pesanan;
                     
+                    // 3. Timpa Pengguna (Pertahankan Owner 0000)
                     if(json.data.pengguna) {
                         let userSheet = json.data.pengguna.filter(u => String(u.pin) !== '0000');
                         penggunaDatabase = [
@@ -1012,19 +1054,21 @@
                         ];
                     }
 
+                    // 4. Render UI
                     renderDropdownCabang();
                     document.getElementById('set-nama-toko').value = pengaturanSistem.namaToko;
                     document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko;
                     document.getElementById('set-telp').value = pengaturanSistem.telp;
                     document.getElementById('set-laci').checked = pengaturanSistem.laciOtomatis;
                     
-                    renderTabelKasir(); renderTabelCabang(); renderProdukKasir(); renderTabelPesanan(); renderTabelMenu(); renderTabelStok();
+                    renderTabelKasir(); 
+                    renderTabelCabang(); 
+                    renderProdukKasir(); 
+                    renderTabelPesanan(); 
+                    renderTabelMenu(); 
+                    renderTabelStok();
                     
-                    showToast("Sistem tersinkronisasi!", "success");
-
-                    // ==========================================
-                    // LOGIKA AUTO-LOGIN SETELAH REFRESH
-                    // ==========================================
+                    // 5. AUTO-LOGIN CHECK
                     let savedPin = localStorage.getItem('warmindo_user_pin');
                     if (savedPin) {
                         let user = penggunaDatabase.find(u => u.pin === savedPin);
@@ -1035,28 +1079,32 @@
                             document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
                             document.getElementById('kasir-aktif-nama').innerText = user.nama;
                             
-                            // Langsung sembunyikan layar login tanpa animasi lambat
+                            // Sembunyikan layar login seketika di balik layar loading
                             document.getElementById('view-login').classList.add('hidden');
                         } else {
-                            // Jika PIN sudah dihapus oleh Owner dari database, hapus sesi
                             localStorage.removeItem('warmindo_user_pin');
                         }
                     }
                 }
             } catch (error) {
                 console.error(error);
-                showToast("Gagal menarik data cloud. Periksa koneksi.", "error");
+                showToast("Gagal menarik data cloud. Periksa koneksi internet.", "error");
+            } finally {
+                // TUTUP SPLASH SCREEN SETELAH SEMUANYA SELESAI DENGAN ELEGAN
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => splash.classList.add('hidden'), 500);
             }
         }
 
-        // === INIT APLIKASI UTAMA ===
-        async function initApp() { 
+        function initApp() { 
             document.getElementById('filter-tanggal-pesanan').value = hariIniISO;
             document.getElementById('pin-1').focus();
 
             // Jalankan fungsi tarik data otomatis
-            await tarikDataCloud();
+            tarikDataCloud();
         }
+
         // =======================================================================================
         // BLUETOOTH & NAVIGASI
         // =======================================================================================
