@@ -128,7 +128,14 @@
                         Masuk Sistem
                     </button>
                     
-                    <p class="text-[10px] text-gray-400 flex items-center justify-center gap-1">
+                    <!-- ========================================== -->
+                    <!-- TOMBOL INSTALL PWA (Muncul jika belum diinstall) -->
+                    <!-- ========================================== -->
+                    <button id="btn-install-app" class="hidden w-full mb-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 rounded-xl shadow-sm border border-indigo-200 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Install ke Perangkat
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-400 flex items-center justify-center gap-1 mt-2">
                         <i class="fa-solid fa-shield-halved"></i> Dilindungi oleh Enkripsi PIN
                     </p>
                 </div>
@@ -1836,6 +1843,43 @@
         }
         
         window.onload = initApp;
+
+        // =======================================================================================
+        // PWA INSTALLATION LOGIC (TOMBOL INSTALL PINTAR)
+        // =======================================================================================
+        let deferredPrompt;
+        const installBtn = document.getElementById('btn-install-app');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah munculnya prompt bawaan browser (opsional)
+            e.preventDefault();
+            // Simpan event agar bisa dipanggil oleh tombol kita nanti
+            deferredPrompt = e;
+            // Tampilkan tombol install kita
+            if(installBtn) installBtn.classList.remove('hidden');
+        });
+
+        if(installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt !== null) {
+                    // Munculkan prompt instalasi bawaan browser
+                    deferredPrompt.prompt();
+                    // Tunggu respon dari user
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.classList.add('hidden');
+                    }
+                    // Prompt hanya bisa digunakan sekali
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            if(installBtn) installBtn.classList.add('hidden');
+            deferredPrompt = null;
+            showToast('Aplikasi berhasil di-install ke perangkat!', 'success');
+        });
 
         // REGISTRASI SERVICE WORKER (PWA)
         if ('serviceWorker' in navigator) { 
