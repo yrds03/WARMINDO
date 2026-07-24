@@ -128,9 +128,7 @@
                         Masuk Sistem
                     </button>
                     
-                    <!-- ========================================== -->
                     <!-- TOMBOL INSTALL PWA (Muncul jika belum diinstall) -->
-                    <!-- ========================================== -->
                     <button id="btn-install-app" class="hidden w-full mb-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 rounded-xl shadow-sm border border-indigo-200 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-download"></i> Install ke Perangkat
                     </button>
@@ -142,6 +140,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- ========================================== -->
     <!-- GLOBAL BLUETOOTH INDICATOR -->
@@ -801,6 +800,7 @@
         }
 
         let confirmAction = null;
+        
         function showConfirm(title, message, actionCallback) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-message').innerText = message;
@@ -937,6 +937,7 @@
             if(menuPertama) switchMenu(menuPertama);
         }
 
+        // QUICK SWITCH (GANTI KASIR TANPA LOGOUT)
         function bukaQuickSwitch() {
             document.getElementById('pin-switch').value = '';
             const modal = document.getElementById('modal-quick-switch'); 
@@ -955,7 +956,9 @@
             let user = penggunaDatabase.find(u => u.pin === pinInput);
             
             if(user) {
+                // SIMPAN SESI BARU
                 localStorage.setItem('warmindo_user_pin', pinInput);
+                
                 kasirAktif = user.nama;
                 pengaturanSistem.cabangAktif = user.cabang;
                 terapkanHakAkses(user.akses);
@@ -971,9 +974,12 @@
             }
         }
 
+        // LOGOUT KESELURUHAN
         function prosesLogout() {
             showConfirm('Keluar Sistem', 'Apakah Anda yakin ingin mengakhiri sesi dan keluar?', () => {
+                // HAPUS SESI DARI MEMORI BROWSER
                 localStorage.removeItem('warmindo_user_pin');
+                
                 kasirAktif = null; 
                 pengaturanSistem.cabangAktif = '-';
                 
@@ -1128,20 +1134,40 @@
         }
 
         // =======================================================================================
-        // BLUETOOTH & NAVIGASI
+        // BLUETOOTH & PROTOKOL ESC/POS CETAK STRUK 58mm
         // =======================================================================================
         let printDevice = null; 
         let printServer = null;
+        let printCharacteristic = null;
         
         async function connectBluetooth() {
-            if (!navigator.bluetooth) return showToast('Browser tidak mendukung Bluetooth API!', 'error');
+            if (!navigator.bluetooth) return showToast('Gunakan Google Chrome untuk koneksi Printer!', 'error');
             try {
                 printDevice = await navigator.bluetooth.requestDevice({ 
                     acceptAllDevices: true, 
-                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '0000fee7-0000-1000-8000-00805f9b34fb'] 
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', 'e7810a71-73ae-499d-8c15-faa9aef0c3f2'] 
                 });
+                
                 printDevice.addEventListener('gattserverdisconnected', onPrinterDisconnected); 
                 printServer = await printDevice.gatt.connect();
+                
+                // Cari service dan karakteristik printer ESC/POS
+                const services = await printServer.getPrimaryServices();
+                let service = null;
+                for (let s of services) {
+                    if (s.uuid === '000018f0-0000-1000-8000-00805f9b34fb' || s.uuid === 'e7810a71-73ae-499d-8c15-faa9aef0c3f2') {
+                        service = s;
+                        break;
+                    }
+                }
+
+                if(!service) service = services[0]; // Fallback
+
+                const characteristics = await service.getCharacteristics();
+                printCharacteristic = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
+
+                if (!printCharacteristic) throw new Error("Karakteristik printer tidak ditemukan.");
+
                 updateBluetoothUI(true, printDevice.name); 
                 showToast(`Berhasil menyandingkan printer!`, 'success');
             } catch(error) { 
@@ -1189,6 +1215,100 @@
             }
         }
 
+        // FUNGSI UTAMA MENCETAK STRUK ESC/POS (58mm)
+        async function cetakStruk(trx, items) {
+            if (!printCharacteristic) {
+                showToast("Printer belum terhubung! Lewati cetak struk.", "error");
+                return;
+            }
+
+            try {
+                const encoder = new TextEncoder();
+                // ESC/POS Commands standar
+                const ESC_INIT = "\x1B\x40"; 
+                const ESC_ALIGN_CENTER = "\x1B\x61\x01";
+                const ESC_ALIGN_LEFT = "\x1B\x61\x00";
+                const ESC_BOLD_ON = "\x1B\x45\x01";
+                const ESC_BOLD_OFF = "\x1B\x45\x00";
+                const LF = "\x0A";
+                const BUKA_LACI = "\x1B\x70\x00\x19\xFA"; 
+
+                let struk = ESC_INIT;
+                
+                // --- HEADER ---
+                struk += ESC_ALIGN_CENTER + ESC_BOLD_ON;
+                struk += pengaturanSistem.namaToko + LF;
+                struk += ESC_BOLD_OFF;
+                struk += pengaturanSistem.alamat + LF;
+                struk += pengaturanSistem.telp + LF;
+                struk += "--------------------------------" + LF; // Lebar 32 karakter untuk 58mm
+                
+                // --- INFO TRANSAKSI ---
+                struk += ESC_ALIGN_LEFT;
+                struk += `No  : ${trx.id}` + LF;
+                struk += `Tgl : ${trx.tanggal} ${trx.waktu}` + LF;
+                struk += `Kasir: ${kasirAktif}` + LF;
+                struk += `Meja : ${trx.pelanggan} (${trx.tipe})` + LF;
+                struk += "--------------------------------" + LF;
+
+                // --- ITEM PESANAN ---
+                items.forEach(item => {
+                    let nama = item.nama.substring(0, 32);
+                    struk += nama + LF;
+                    
+                    let qtyPrice = `${item.qty}x ${item.harga.toLocaleString()}`;
+                    let subtotal = `Rp ${(item.qty * item.harga).toLocaleString()}`;
+                    
+                    let pad = 32 - (qtyPrice.length + subtotal.length);
+                    if(pad < 1) pad = 1;
+                    struk += qtyPrice + " ".repeat(pad) + subtotal + LF;
+                });
+                
+                struk += "--------------------------------" + LF;
+                
+                // --- TOTAL ---
+                let totalStr = `Rp ${trx.total.toLocaleString()}`;
+                struk += ESC_BOLD_ON + "TOTAL:" + " ".repeat(32 - 6 - totalStr.length) + totalStr + LF + ESC_BOLD_OFF;
+                
+                let bayarStr = `Rp ${(trx.diterima || trx.total).toLocaleString()}`;
+                struk += "BAYAR ("+trx.bayar+"):" + " ".repeat(32 - 14 - trx.bayar.length - bayarStr.length) + bayarStr + LF;
+                
+                if(trx.bayar === 'Tunai') {
+                    let kembaliStr = `Rp ${(trx.kembalian || 0).toLocaleString()}`;
+                    struk += "KEMBALI:" + " ".repeat(32 - 8 - kembaliStr.length) + kembaliStr + LF;
+                }
+
+                struk += "--------------------------------" + LF;
+                
+                // --- FOOTER ---
+                struk += ESC_ALIGN_CENTER;
+                struk += "Terima Kasih Atas Kunjungan Anda" + LF;
+                struk += "POWERED BY CLOUD POS" + LF;
+                struk += LF + LF + LF + LF; // Feed kertas agar mudah disobek
+
+                if(pengaturanSistem.laciOtomatis) struk += BUKA_LACI;
+                
+                // Tembak data ke printer (Chunking 100 bytes agar aman dari limit BLE)
+                let dataUint8 = encoder.encode(struk);
+                let chunkSize = 100;
+                for (let i = 0; i < dataUint8.length; i += chunkSize) {
+                    let chunk = dataUint8.slice(i, i + chunkSize);
+                    if(printCharacteristic.properties.writeWithoutResponse) {
+                        await printCharacteristic.writeValueWithoutResponse(chunk);
+                    } else {
+                        await printCharacteristic.writeValue(chunk);
+                    }
+                }
+                
+            } catch (error) {
+                console.error(error);
+                showToast("Terjadi kesalahan sistem print.", "error");
+            }
+        }
+
+        // =======================================================================================
+        // NAVIGASI
+        // =======================================================================================
         function switchMenu(menuName) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => { 
@@ -1494,15 +1614,22 @@
 
             let idTrxLokal = 'TRX-' + String(Date.now()).slice(-4);
             
-            pesananDatabase.unshift({ 
-                id: idTrxLokal, tanggal: tglISO, waktu: jam, pelanggan: namaMeja, tipe: tipeLayanan, cabang: pengaturanSistem.cabangAktif, total: totalAkhirBayar, bayar: metodeBayarPilihan 
-            });
+            let dataTrx = { 
+                id: idTrxLokal, tanggal: tglISO, waktu: jam, pelanggan: namaMeja, tipe: tipeLayanan, cabang: pengaturanSistem.cabangAktif, total: totalAkhirBayar, bayar: metodeBayarPilihan,
+                diterima: parseInt(document.getElementById('pay-diterima').value) || 0,
+                kembalian: (parseInt(document.getElementById('pay-diterima').value) || 0) - totalAkhirBayar
+            };
+
+            pesananDatabase.unshift(dataTrx);
             
             keranjang.forEach(k => { 
                 mockupTransaksi.push({ 
                     id: idTrxLokal, waktu: `${tglISO} ${jam}`, pelanggan: namaMeja, menu: k.nama, kategori: k.kategori, qty: k.qty, modal: k.modal, harga: k.harga, subtotal: k.harga * k.qty, bayar: metodeBayarPilihan 
                 }); 
             });
+
+            // Eksekusi Cetak Bluetooth Struk
+            cetakStruk(dataTrx, keranjang);
 
             kirimKeServer('transaksi', { 
                 namaPelanggan: namaMeja, tipeLayanan: tipeLayanan, subtotal: totalSubtotal, diskon: diskon, pajak: 0, totalAkhir: totalAkhirBayar, metodeBayar: metodeBayarPilihan, statusPesanan: 'Selesai', keranjang: keranjang, kasir: kasirAktif, cabang: pengaturanSistem.cabangAktif 
@@ -1551,9 +1678,25 @@
                     <td class="p-4"><div class="font-semibold text-gray-800">${p.pelanggan}</div><span class="text-xs ${p.tipe==='Dine In'?'text-blue-600':'text-purple-600'} font-bold">${p.tipe}</span></td>
                     <td class="p-4"><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded">${p.cabang}</span></td>
                     <td class="p-4 font-bold text-w-orange">Rp ${p.total.toLocaleString()} <br><span class="text-xs text-gray-400 font-normal">via ${p.bayar}</span></td>
-                    <td class="p-4 text-center"><button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex mx-auto gap-1 items-center transition" onclick="showToast('Mencetak ulang struk...', 'info')"><i class="fa-solid fa-print"></i> Cetak</button></td>
+                    <td class="p-4 text-center"><button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex mx-auto gap-1 items-center transition" onclick="cetakUlangStruk('${p.id}')"><i class="fa-solid fa-print"></i> Cetak</button></td>
                 </tr>`; 
             }); 
+        }
+
+        // FUNGSI CETAK ULANG DARI HISTORI
+        function cetakUlangStruk(idTrx) {
+            let trx = pesananDatabase.find(p => p.id === idTrx);
+            if(!trx) return showToast("Data transaksi tidak ditemukan!", "error");
+            
+            // Mengambil item-item yang terkait dengan transaksi ini dari memori
+            let items = mockupTransaksi.filter(m => m.id === idTrx);
+            if(items.length === 0) {
+                // Jika dari sesi sebelumnya (belum ke-load detailnya), buat ringkasan saja
+                items = [{ nama: "Ringkasan Pesanan", qty: 1, harga: trx.total }];
+            }
+
+            showToast("Mencetak ulang struk...", "info");
+            cetakStruk(trx, items);
         }
 
         function renderTabelMenu() { 
@@ -1869,25 +2012,19 @@
         const installBtn = document.getElementById('btn-install-app');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah munculnya prompt bawaan browser (opsional)
             e.preventDefault();
-            // Simpan event agar bisa dipanggil oleh tombol kita nanti
             deferredPrompt = e;
-            // Tampilkan tombol install kita
             if(installBtn) installBtn.classList.remove('hidden');
         });
 
         if(installBtn) {
             installBtn.addEventListener('click', async () => {
                 if (deferredPrompt !== null) {
-                    // Munculkan prompt instalasi bawaan browser
                     deferredPrompt.prompt();
-                    // Tunggu respon dari user
                     const { outcome } = await deferredPrompt.userChoice;
                     if (outcome === 'accepted') {
                         installBtn.classList.add('hidden');
                     }
-                    // Prompt hanya bisa digunakan sekali
                     deferredPrompt = null;
                 }
             });
@@ -1899,7 +2036,6 @@
             showToast('Aplikasi berhasil di-install ke perangkat!', 'success');
         });
 
-        // REGISTRASI SERVICE WORKER (PWA)
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { 
                 navigator.serviceWorker.register('./sw.js')
