@@ -143,7 +143,6 @@
         </div>
     </div>
 
-
     <!-- ========================================== -->
     <!-- GLOBAL BLUETOOTH INDICATOR -->
     <!-- ========================================== -->
@@ -224,12 +223,9 @@
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                         <input type="text" id="input-pencarian-mobile" onkeyup="filterMenuKasir(this.value)" placeholder="Cari menu..." class="pl-10 pr-4 py-2 border rounded-lg w-full bg-w-cream focus:outline-w-orange">
                     </div>
+                    <!-- TAB KATEGORI MENU (Otomatis Generate dari Database) -->
                     <div class="flex gap-2 overflow-x-auto hide-scroll pb-1 mt-1" id="kategori-container">
-                        <button onclick="pilihKategoriKasir('Semua', this)" class="btn-kategori px-5 py-1.5 rounded-full bg-w-orange text-white font-medium text-sm transition shadow-sm">Semua</button>
-                        <button onclick="pilihKategoriKasir('Indomie', this)" class="btn-kategori px-5 py-1.5 rounded-full bg-gray-200 text-w-black text-sm transition hover:bg-gray-300">Indomie</button>
-                        <button onclick="pilihKategoriKasir('Nasi', this)" class="btn-kategori px-5 py-1.5 rounded-full bg-gray-200 text-w-black text-sm transition hover:bg-gray-300">Nasi</button>
-                        <button onclick="pilihKategoriKasir('Minuman', this)" class="btn-kategori px-5 py-1.5 rounded-full bg-gray-200 text-w-black text-sm transition hover:bg-gray-300">Minuman</button>
-                        <button onclick="pilihKategoriKasir('Snack', this)" class="btn-kategori px-5 py-1.5 rounded-full bg-gray-200 text-w-black text-sm transition hover:bg-gray-300">Snack</button>
+                        <!-- JS Render Kategori Menu -->
                     </div>
                 </header>
                 <section class="flex-1 overflow-y-auto p-4 pb-24 md:pb-4">
@@ -335,11 +331,9 @@
                     <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400"></i>
                     <input type="text" id="input-cari-stok" onkeyup="filterStok()" placeholder="Cari bahan..." class="pl-10 pr-4 py-2 border rounded-lg w-full bg-gray-50 text-sm focus:outline-w-orange">
                 </div>
-                <div class="flex gap-2 overflow-x-auto w-full md:w-auto hide-scroll pb-1">
-                    <button onclick="pilihKategoriStok('Semua', this)" class="btn-kat-stok px-4 py-1.5 rounded-full bg-w-black text-white text-sm font-medium transition shadow-sm">Semua</button>
-                    <button onclick="pilihKategoriStok('Mie', this)" class="btn-kat-stok px-4 py-1.5 rounded-full bg-gray-200 text-w-black hover:bg-gray-300 text-sm font-medium transition">Mie</button>
-                    <button onclick="pilihKategoriStok('Lauk', this)" class="btn-kat-stok px-4 py-1.5 rounded-full bg-gray-200 text-w-black hover:bg-gray-300 text-sm font-medium transition">Lauk</button>
-                    <button onclick="pilihKategoriStok('Bumbu', this)" class="btn-kat-stok px-4 py-1.5 rounded-full bg-gray-200 text-w-black hover:bg-gray-300 text-sm font-medium transition">Bumbu</button>
+                <!-- TAB KATEGORI STOK (Otomatis Generate dari Database) -->
+                <div class="flex gap-2 overflow-x-auto w-full md:w-auto hide-scroll pb-1" id="kategori-stok-container">
+                    <!-- JS Render Kategori Stok -->
                 </div>
             </div>
 
@@ -566,13 +560,11 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Kategori</label>
-                        <select id="form-kategori" class="w-full border p-2 rounded-lg bg-gray-50 focus:outline-w-orange">
-                            <option>Indomie</option>
-                            <option>Nasi</option>
-                            <option>Minuman</option>
-                            <option>Snack</option>
-                        </select>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Kategori (Pilih/Ketik)</label>
+                        <input type="text" id="form-kategori" list="list-kategori-menu" class="w-full border p-2 rounded-lg bg-gray-50 focus:outline-w-orange" placeholder="Ketik kategori baru...">
+                        <datalist id="list-kategori-menu">
+                            <!-- JS Generated -->
+                        </datalist>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-1">Status</label>
@@ -593,10 +585,7 @@
                     </div>
                 </div>
                 <div class="bg-w-cream border border-orange-100 p-3 rounded-xl">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-semibold text-gray-700">Foto Menu</label>
-                        <a href="https://drive.google.com/drive/folders/14kLlkmVpDuj2eww-DCsLyR3K1hoxQW0O?usp=sharing" target="_blank" class="text-[10px] text-blue-700 bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded font-bold flex items-center gap-1 shadow-sm"><i class="fa-solid fa-folder-open"></i> G-Drive</a>
-                    </div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Ambil Foto / Unggah Menu</label>
                     <div class="flex items-center gap-3">
                         <div class="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden border flex-shrink-0">
                             <img id="preview-gambar" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
@@ -632,13 +621,11 @@
                     <input type="text" id="stok-nama" class="w-full border p-2 rounded-lg bg-gray-50 focus:outline-w-orange">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Kategori</label>
-                    <select id="stok-kategori" class="w-full border p-2 rounded-lg bg-gray-50 focus:outline-w-orange">
-                        <option>Mie</option>
-                        <option>Lauk</option>
-                        <option>Bumbu</option>
-                        <option>Lainnya</option>
-                    </select>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Kategori (Pilih/Ketik)</label>
+                    <input type="text" id="stok-kategori" list="list-kategori-stok" class="w-full border p-2 rounded-lg bg-gray-50 focus:outline-w-orange" placeholder="Ketik kategori baru...">
+                    <datalist id="list-kategori-stok">
+                        <!-- JS Generated -->
+                    </datalist>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -801,13 +788,11 @@
             
             container.appendChild(toast);
             
-            // Animasi masuk
             setTimeout(() => { 
                 toast.classList.remove('-translate-y-10', 'opacity-0'); 
                 toast.classList.add('translate-y-0', 'opacity-100'); 
             }, 10);
             
-            // Animasi keluar otomatis 3 detik
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('-translate-y-10', 'opacity-0');
@@ -816,7 +801,6 @@
         }
 
         let confirmAction = null;
-        
         function showConfirm(title, message, actionCallback) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-message').innerText = message;
@@ -953,7 +937,6 @@
             if(menuPertama) switchMenu(menuPertama);
         }
 
-        // QUICK SWITCH (GANTI KASIR TANPA LOGOUT)
         function bukaQuickSwitch() {
             document.getElementById('pin-switch').value = '';
             const modal = document.getElementById('modal-quick-switch'); 
@@ -972,9 +955,7 @@
             let user = penggunaDatabase.find(u => u.pin === pinInput);
             
             if(user) {
-                // SIMPAN SESI BARU
                 localStorage.setItem('warmindo_user_pin', pinInput);
-                
                 kasirAktif = user.nama;
                 pengaturanSistem.cabangAktif = user.cabang;
                 terapkanHakAkses(user.akses);
@@ -990,12 +971,9 @@
             }
         }
 
-        // LOGOUT KESELURUHAN
         function prosesLogout() {
             showConfirm('Keluar Sistem', 'Apakah Anda yakin ingin mengakhiri sesi dan keluar?', () => {
-                // HAPUS SESI DARI MEMORI BROWSER
                 localStorage.removeItem('warmindo_user_pin');
-                
                 kasirAktif = null; 
                 pengaturanSistem.cabangAktif = '-';
                 
@@ -1023,8 +1001,47 @@
         }
 
         // =======================================================================================
-        // TARIK DATA DARI CLOUD (GOOGLE SHEETS) SAAT APLIKASI DIBUKA
+        // TARIK DATA DARI CLOUD & AUTO RENDER KATEGORI
         // =======================================================================================
+        
+        // RENDER KATEGORI DINAMIS UNTUK MENU
+        function renderKategoriMenu() {
+            let uniqueCategories = [...new Set(produkDatabase.map(p => p.kategori))];
+            if(uniqueCategories.length === 0) uniqueCategories = ['Indomie', 'Nasi', 'Minuman', 'Snack'];
+            
+            // Render Tabs Kasir
+            const container = document.getElementById('kategori-container');
+            container.innerHTML = `<button onclick="pilihKategoriKasir('Semua')" class="btn-kategori px-5 py-1.5 rounded-full ${kategoriAktif === 'Semua' ? 'bg-w-orange text-white shadow-sm' : 'bg-gray-200 text-w-black hover:bg-gray-300'} font-medium text-sm transition">Semua</button>`;
+            
+            uniqueCategories.forEach(kat => {
+                let isActive = kategoriAktif === kat ? 'bg-w-orange text-white shadow-sm' : 'bg-gray-200 text-w-black hover:bg-gray-300';
+                container.innerHTML += `<button onclick="pilihKategoriKasir('${kat}')" class="btn-kategori px-5 py-1.5 rounded-full ${isActive} text-sm transition">${kat}</button>`;
+            });
+
+            // Render Datalist Form
+            const datalist = document.getElementById('list-kategori-menu');
+            datalist.innerHTML = uniqueCategories.map(kat => `<option value="${kat}">`).join('');
+        }
+
+        // RENDER KATEGORI DINAMIS UNTUK STOK
+        function renderKategoriStok() {
+            let uniqueCategories = [...new Set(stokDatabase.map(s => s.kategori))];
+            if(uniqueCategories.length === 0) uniqueCategories = ['Mie', 'Lauk', 'Bumbu', 'Lainnya'];
+            
+            // Render Tabs Stok
+            const container = document.getElementById('kategori-stok-container');
+            container.innerHTML = `<button onclick="pilihKategoriStok('Semua')" class="btn-kat-stok px-4 py-1.5 rounded-full ${kategoriStokAktif === 'Semua' ? 'bg-w-black text-white shadow-sm' : 'bg-gray-200 text-w-black hover:bg-gray-300'} text-sm font-medium transition">Semua</button>`;
+            
+            uniqueCategories.forEach(kat => {
+                let isActive = kategoriStokAktif === kat ? 'bg-w-black text-white shadow-sm' : 'bg-gray-200 text-w-black hover:bg-gray-300';
+                container.innerHTML += `<button onclick="pilihKategoriStok('${kat}')" class="btn-kat-stok px-4 py-1.5 rounded-full ${isActive} text-sm font-medium transition">${kat}</button>`;
+            });
+
+            // Render Datalist Form
+            const datalist = document.getElementById('list-kategori-stok');
+            datalist.innerHTML = uniqueCategories.map(kat => `<option value="${kat}">`).join('');
+        }
+
         async function tarikDataCloud() {
             if(API_URL === 'PASTE_URL_WEB_APP_GAS_ANDA_DISINI') {
                 setTimeout(() => document.getElementById('splash-screen').classList.add('opacity-0', 'pointer-events-none'), 500);
@@ -1037,7 +1054,6 @@
                 let json = await response.json();
                 
                 if (json.status === 'sukses') {
-                    // 1. Timpa Pengaturan
                     if(json.data.pengaturan) {
                         pengaturanSistem.namaToko = json.data.pengaturan.namaToko || 'WARMINDO';
                         pengaturanSistem.cabangAktif = json.data.pengaturan.cabangAktif || '-';
@@ -1046,13 +1062,11 @@
                         pengaturanSistem.laciOtomatis = String(json.data.pengaturan.laciOtomatis).toUpperCase() === 'TRUE';
                     }
                     
-                    // 2. Timpa Database Array
                     if(json.data.cabang) cabangDatabase = json.data.cabang;
                     if(json.data.produk) produkDatabase = json.data.produk;
                     if(json.data.stok) stokDatabase = json.data.stok;
                     if(json.data.pesanan) pesananDatabase = json.data.pesanan;
                     
-                    // 3. Timpa Pengguna (Pertahankan Owner 0000)
                     if(json.data.pengguna) {
                         let userSheet = json.data.pengguna.filter(u => String(u.pin) !== '0000');
                         penggunaDatabase = [
@@ -1061,7 +1075,7 @@
                         ];
                     }
 
-                    // 4. Render UI
+                    // Render Data
                     renderDropdownCabang();
                     document.getElementById('set-nama-toko').value = pengaturanSistem.namaToko;
                     document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko;
@@ -1070,12 +1084,17 @@
                     
                     renderTabelKasir(); 
                     renderTabelCabang(); 
-                    renderProdukKasir(); 
-                    renderTabelPesanan(); 
-                    renderTabelMenu(); 
-                    renderTabelStok();
                     
-                    // 5. AUTO-LOGIN CHECK
+                    renderKategoriMenu();
+                    renderProdukKasir(); 
+                    renderTabelMenu(); 
+                    
+                    renderKategoriStok();
+                    renderTabelStok();
+
+                    renderTabelPesanan(); 
+                    
+                    // AUTO-LOGIN CHECK
                     let savedPin = localStorage.getItem('warmindo_user_pin');
                     if (savedPin) {
                         let user = penggunaDatabase.find(u => u.pin === savedPin);
@@ -1086,7 +1105,6 @@
                             document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
                             document.getElementById('kasir-aktif-nama').innerText = user.nama;
                             
-                            // Sembunyikan layar login seketika di balik layar loading
                             document.getElementById('view-login').classList.add('hidden');
                         } else {
                             localStorage.removeItem('warmindo_user_pin');
@@ -1097,7 +1115,6 @@
                 console.error(error);
                 showToast("Gagal menarik data cloud. Periksa koneksi internet.", "error");
             } finally {
-                // TUTUP SPLASH SCREEN SETELAH SEMUANYA SELESAI DENGAN ELEGAN
                 const splash = document.getElementById('splash-screen');
                 splash.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => splash.classList.add('hidden'), 500);
@@ -1107,8 +1124,6 @@
         function initApp() { 
             document.getElementById('filter-tanggal-pesanan').value = hariIniISO;
             document.getElementById('pin-1').focus();
-
-            // Jalankan fungsi tarik data otomatis
             tarikDataCloud();
         }
 
@@ -1324,14 +1339,9 @@
         // =======================================================================================
         // LOGIKA TRANSAKSI KASIR
         // =======================================================================================
-        function pilihKategoriKasir(kategori, el) { 
+        function pilihKategoriKasir(kategori) { 
             kategoriAktif = kategori; 
-            document.querySelectorAll('.btn-kategori').forEach(btn => { 
-                btn.classList.remove('bg-w-orange', 'text-white'); 
-                btn.classList.add('bg-gray-200', 'text-w-black'); 
-            }); 
-            el.classList.remove('bg-gray-200', 'text-w-black'); 
-            el.classList.add('bg-w-orange', 'text-white'); 
+            renderKategoriMenu();
             filterMenuKasir(); 
         }
 
@@ -1571,6 +1581,7 @@
         function hapusMenu(id) { 
             showConfirm('Hapus Menu', 'Apakah Anda yakin ingin menghapus menu ini permanen?', async () => { 
                 produkDatabase = produkDatabase.filter(x => x.id !== id); 
+                renderKategoriMenu();
                 renderTabelMenu(); 
                 renderProdukKasir(); 
                 showToast("Menu berhasil dihapus.", "success"); 
@@ -1599,6 +1610,7 @@
                 document.getElementById('modal-title').innerText = 'Tambah Menu Baru'; 
                 document.getElementById('form-id').value = ''; 
                 document.getElementById('form-nama').value = ''; 
+                document.getElementById('form-kategori').value = ''; 
                 document.getElementById('form-modal').value = ''; 
                 document.getElementById('form-harga').value = ''; 
                 document.getElementById('preview-gambar').src = 'https://via.placeholder.com/150'; 
@@ -1659,10 +1671,13 @@
             const imgLama = document.getElementById('form-gambar-lama').value; 
             const imgFix = imgBase64 || imgLama || 'https://via.placeholder.com/150'; 
             
+            let inputKategori = document.getElementById('form-kategori').value.trim();
+            if(!inputKategori) return showToast("Kategori tidak boleh kosong!", "error");
+
             const dataMenu = { 
                 id: id || 'P-'+String(Date.now()).slice(-4), 
                 nama: document.getElementById('form-nama').value, 
-                kategori: document.getElementById('form-kategori').value, 
+                kategori: inputKategori, 
                 modal: parseInt(document.getElementById('form-modal').value)||0, 
                 harga: parseInt(document.getElementById('form-harga').value)||0, 
                 status: document.getElementById('form-status').value, 
@@ -1681,6 +1696,7 @@
             } 
             
             tutupModalMenu(); 
+            renderKategoriMenu();
             renderTabelMenu(); 
             renderProdukKasir(); 
             showToast("Menu berhasil disimpan!", "success"); 
@@ -1692,14 +1708,9 @@
             return { label:'Aman', warna:'bg-w-green/20 text-w-green border-w-green/50' }; 
         }
 
-        function pilihKategoriStok(kategori, el) { 
+        function pilihKategoriStok(kategori) { 
             kategoriStokAktif = kategori; 
-            document.querySelectorAll('.btn-kat-stok').forEach(btn => { 
-                btn.classList.remove('bg-w-black', 'text-white'); 
-                btn.classList.add('bg-gray-200', 'text-w-black'); 
-            }); 
-            el.classList.remove('bg-gray-200', 'text-w-black'); 
-            el.classList.add('bg-w-black', 'text-white'); 
+            renderKategoriStok();
             filterStok(); 
         }
 
@@ -1755,6 +1766,7 @@
                 document.getElementById('modal-title-stok').innerText = 'Tambah Bahan Baru'; 
                 document.getElementById('stok-id').value = ''; 
                 document.getElementById('stok-nama').value = ''; 
+                document.getElementById('stok-kategori').value = ''; 
                 document.getElementById('stok-jumlah').value = ''; 
             } 
             
@@ -1769,10 +1781,14 @@
 
         async function simpanDataStok() { 
             const id = document.getElementById('stok-id').value; 
+            
+            let inputKategori = document.getElementById('stok-kategori').value.trim();
+            if(!inputKategori) return showToast("Kategori tidak boleh kosong!", "error");
+
             const dataStok = { 
                 id: id || 'S-'+String(Date.now()).slice(-4), 
                 nama: document.getElementById('stok-nama').value, 
-                kategori: document.getElementById('stok-kategori').value, 
+                kategori: inputKategori, 
                 stok: parseInt(document.getElementById('stok-jumlah').value)||0, 
                 satuan: document.getElementById('stok-satuan').value, 
                 batas: parseInt(document.getElementById('stok-batas').value)||5 
@@ -1788,6 +1804,7 @@
             } 
             
             tutupModalStok(); 
+            renderKategoriStok();
             renderTabelStok(); 
             showToast("Bahan baku berhasil disimpan!", "success"); 
         }
@@ -1795,6 +1812,7 @@
         function hapusStok(id) { 
             showConfirm('Hapus Bahan', 'Bahan baku ini akan dihapus permanen dari sistem.', async () => { 
                 stokDatabase = stokDatabase.filter(x => x.id !== id); 
+                renderKategoriStok();
                 renderTabelStok(); 
                 showToast("Bahan berhasil dihapus.", "success"); 
                 kirimKeServer('hapusStok', { id: id }); 
