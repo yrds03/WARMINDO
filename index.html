@@ -161,6 +161,7 @@
                             <input type="text" id="input-pencarian" onkeyup="filterMenuKasir()" placeholder="Cari menu..." class="pl-10 pr-4 py-2 border rounded-lg w-full bg-w-cream focus:outline-w-orange">
                         </div>
                     </div>
+                    <!-- Pencarian Mobile -->
                     <div class="relative w-full md:hidden mt-2">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                         <input type="text" id="input-pencarian-mobile" onkeyup="filterMenuKasir(this.value)" placeholder="Cari menu..." class="pl-10 pr-4 py-2 border rounded-lg w-full bg-w-cream focus:outline-w-orange">
@@ -867,9 +868,6 @@
         
         window.onload = initApp;
 
-        // =======================================================================================
-        // PWA INSTALLATION LOGIC (TOMBOL INSTALL PINTAR)
-        // =======================================================================================
         let deferredPrompt; const installBtn = document.getElementById('btn-install-app');
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if(installBtn) installBtn.classList.remove('hidden'); });
         if(installBtn) { installBtn.addEventListener('click', async () => { if (deferredPrompt !== null) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') { installBtn.classList.add('hidden'); } deferredPrompt = null; } }); }
