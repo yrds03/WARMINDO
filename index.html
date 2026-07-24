@@ -873,16 +873,15 @@
         }
 
         function prosesLogin() {
-            let pinInput = document.getElementById('pin-1').value + 
-                           document.getElementById('pin-2').value + 
-                           document.getElementById('pin-3').value + 
-                           document.getElementById('pin-4').value;
+            let pinInput = document.getElementById('pin-1').value + document.getElementById('pin-2').value + document.getElementById('pin-3').value + document.getElementById('pin-4').value;
             
             let user = penggunaDatabase.find(u => u.pin === pinInput);
             if(user) {
+                // SIMPAN SESI KE MEMORI BROWSER
+                localStorage.setItem('warmindo_user_pin', pinInput);
+                
                 kasirAktif = user.nama;
                 pengaturanSistem.cabangAktif = user.cabang;
-                
                 terapkanHakAkses(user.akses);
 
                 document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
@@ -890,14 +889,11 @@
                 
                 const loginScreen = document.getElementById('view-login');
                 loginScreen.classList.add('opacity-0');
-                
                 setTimeout(() => {
                     loginScreen.classList.add('hidden');
                     for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
                 }, 500);
-                
                 showToast(`Selamat datang, ${user.nama}!`, 'success');
-
             } else {
                 showToast("PIN Salah! Silakan coba lagi.", 'error');
                 for(let i=1; i<=4; i++) document.getElementById('pin-'+i).value = '';
@@ -939,8 +935,10 @@
         function prosesQuickSwitch() {
             let pinInput = document.getElementById('pin-switch').value;
             let user = penggunaDatabase.find(u => u.pin === pinInput);
-            
             if(user) {
+                // SIMPAN SESI BARU
+                localStorage.setItem('warmindo_user_pin', pinInput);
+                
                 kasirAktif = user.nama;
                 pengaturanSistem.cabangAktif = user.cabang;
                 terapkanHakAkses(user.akses);
@@ -959,6 +957,9 @@
         // LOGOUT KESELURUHAN
         function prosesLogout() {
             showConfirm('Keluar Sistem', 'Apakah Anda yakin ingin mengakhiri sesi dan keluar?', () => {
+                // HAPUS SESI DARI MEMORI BROWSER
+                localStorage.removeItem('warmindo_user_pin');
+                
                 kasirAktif = null; 
                 pengaturanSistem.cabangAktif = '-';
                 
@@ -971,15 +972,9 @@
                 
                 const loginScreen = document.getElementById('view-login'); 
                 loginScreen.classList.remove('hidden');
+                setTimeout(() => { loginScreen.classList.remove('opacity-0'); }, 50);
                 
-                setTimeout(() => { 
-                    loginScreen.classList.remove('opacity-0'); 
-                }, 50);
-                
-                for(let i=1; i<=4; i++) {
-                    document.getElementById('pin-'+i).value = ''; 
-                }
-                
+                for(let i=1; i<=4; i++) { document.getElementById('pin-'+i).value = ''; }
                 setTimeout(() => document.getElementById('pin-1').focus(), 500);
                 showToast('Berhasil keluar dari sistem.', 'info');
             });
@@ -993,13 +988,10 @@
             
             try {
                 showToast("Menarik data dari Cloud...", "info");
-                
-                // Melakukan request GET ke Google Script
                 let response = await fetch(API_URL);
                 let json = await response.json();
                 
                 if (json.status === 'sukses') {
-                    // 1. Timpa Pengaturan
                     if(json.data.pengaturan) {
                         pengaturanSistem.namaToko = json.data.pengaturan.namaToko || 'WARMINDO';
                         pengaturanSistem.cabangAktif = json.data.pengaturan.cabangAktif || '-';
@@ -1007,14 +999,11 @@
                         pengaturanSistem.alamat = json.data.pengaturan.alamat || '-';
                         pengaturanSistem.laciOtomatis = String(json.data.pengaturan.laciOtomatis).toUpperCase() === 'TRUE';
                     }
-                    
-                    // 2. Timpa Database Array
                     if(json.data.cabang) cabangDatabase = json.data.cabang;
                     if(json.data.produk) produkDatabase = json.data.produk;
                     if(json.data.stok) stokDatabase = json.data.stok;
                     if(json.data.pesanan) pesananDatabase = json.data.pesanan;
                     
-                    // 3. Timpa Pengguna (Pertahankan Owner 0000 agar tidak terhapus)
                     if(json.data.pengguna) {
                         let userSheet = json.data.pengguna.filter(u => String(u.pin) !== '0000');
                         penggunaDatabase = [
@@ -1023,25 +1012,40 @@
                         ];
                     }
 
-                    // 4. Render Ulang Seluruh Tampilan dengan data dari G-Sheets
                     renderDropdownCabang();
                     document.getElementById('set-nama-toko').value = pengaturanSistem.namaToko;
                     document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko;
                     document.getElementById('set-telp').value = pengaturanSistem.telp;
                     document.getElementById('set-laci').checked = pengaturanSistem.laciOtomatis;
                     
-                    renderTabelKasir();
-                    renderTabelCabang();
-                    renderProdukKasir();
-                    renderTabelPesanan();
-                    renderTabelMenu();
-                    renderTabelStok();
+                    renderTabelKasir(); renderTabelCabang(); renderProdukKasir(); renderTabelPesanan(); renderTabelMenu(); renderTabelStok();
                     
                     showToast("Sistem tersinkronisasi!", "success");
+
+                    // ==========================================
+                    // LOGIKA AUTO-LOGIN SETELAH REFRESH
+                    // ==========================================
+                    let savedPin = localStorage.getItem('warmindo_user_pin');
+                    if (savedPin) {
+                        let user = penggunaDatabase.find(u => u.pin === savedPin);
+                        if (user) {
+                            kasirAktif = user.nama;
+                            pengaturanSistem.cabangAktif = user.cabang;
+                            terapkanHakAkses(user.akses);
+                            document.getElementById('sidebar-cabang').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.cabang}`;
+                            document.getElementById('kasir-aktif-nama').innerText = user.nama;
+                            
+                            // Langsung sembunyikan layar login tanpa animasi lambat
+                            document.getElementById('view-login').classList.add('hidden');
+                        } else {
+                            // Jika PIN sudah dihapus oleh Owner dari database, hapus sesi
+                            localStorage.removeItem('warmindo_user_pin');
+                        }
+                    }
                 }
             } catch (error) {
                 console.error(error);
-                showToast("Gagal menarik data cloud. Periksa koneksi internet.", "error");
+                showToast("Gagal menarik data cloud. Periksa koneksi.", "error");
             }
         }
 
