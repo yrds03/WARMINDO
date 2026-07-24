@@ -983,22 +983,74 @@
             });
         }
 
-        function initApp() { 
-            renderDropdownCabang();
-            document.getElementById('set-nama-toko').value = pengaturanSistem.namaToko; 
-            document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko; 
-            document.getElementById('filter-tanggal-pesanan').value = hariIniISO;
+        // =======================================================================================
+        // TARIK DATA DARI CLOUD (GOOGLE SHEETS) SAAT APLIKASI DIBUKA
+        // =======================================================================================
+        async function tarikDataCloud() {
+            if(API_URL === 'PASTE_URL_WEB_APP_GAS_ANDA_DISINI') return;
             
-            renderTabelKasir(); 
-            renderTabelCabang(); 
-            renderProdukKasir(); 
-            renderTabelPesanan(); 
-            renderTabelMenu(); 
-            renderTabelStok();
-            
-            document.getElementById('pin-1').focus();
+            try {
+                showToast("Menarik data dari Cloud...", "info");
+                
+                // Melakukan request GET ke Google Script
+                let response = await fetch(API_URL);
+                let json = await response.json();
+                
+                if (json.status === 'sukses') {
+                    // 1. Timpa Pengaturan
+                    if(json.data.pengaturan) {
+                        pengaturanSistem.namaToko = json.data.pengaturan.namaToko || 'WARMINDO';
+                        pengaturanSistem.cabangAktif = json.data.pengaturan.cabangAktif || '-';
+                        pengaturanSistem.telp = json.data.pengaturan.telp || '-';
+                        pengaturanSistem.alamat = json.data.pengaturan.alamat || '-';
+                        pengaturanSistem.laciOtomatis = String(json.data.pengaturan.laciOtomatis).toUpperCase() === 'TRUE';
+                    }
+                    
+                    // 2. Timpa Database Array
+                    if(json.data.cabang) cabangDatabase = json.data.cabang;
+                    if(json.data.produk) produkDatabase = json.data.produk;
+                    if(json.data.stok) stokDatabase = json.data.stok;
+                    if(json.data.pesanan) pesananDatabase = json.data.pesanan;
+                    
+                    // 3. Timpa Pengguna (Pertahankan Owner 0000 agar tidak terhapus)
+                    if(json.data.pengguna) {
+                        let userSheet = json.data.pengguna.filter(u => String(u.pin) !== '0000');
+                        penggunaDatabase = [
+                            { id: 'U00', nama: 'Owner / Superadmin', pin: '0000', jabatan: 'Owner', cabang: 'Semua Cabang', akses: ['dashboard', 'kasir', 'pesanan', 'daftar-menu', 'stok-bahan', 'laporan', 'pengaturan'], status: 'Aktif' },
+                            ...userSheet
+                        ];
+                    }
+
+                    // 4. Render Ulang Seluruh Tampilan dengan data dari G-Sheets
+                    renderDropdownCabang();
+                    document.getElementById('set-nama-toko').value = pengaturanSistem.namaToko;
+                    document.getElementById('sidebar-nama-toko').innerText = pengaturanSistem.namaToko;
+                    document.getElementById('set-telp').value = pengaturanSistem.telp;
+                    document.getElementById('set-laci').checked = pengaturanSistem.laciOtomatis;
+                    
+                    renderTabelKasir();
+                    renderTabelCabang();
+                    renderProdukKasir();
+                    renderTabelPesanan();
+                    renderTabelMenu();
+                    renderTabelStok();
+                    
+                    showToast("Sistem tersinkronisasi!", "success");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menarik data cloud. Periksa koneksi internet.", "error");
+            }
         }
 
+        // === INIT APLIKASI UTAMA ===
+        async function initApp() { 
+            document.getElementById('filter-tanggal-pesanan').value = hariIniISO;
+            document.getElementById('pin-1').focus();
+
+            // Jalankan fungsi tarik data otomatis
+            await tarikDataCloud();
+        }
         // =======================================================================================
         // BLUETOOTH & NAVIGASI
         // =======================================================================================
